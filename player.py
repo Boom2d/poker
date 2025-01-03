@@ -4,6 +4,7 @@ class Player:
         self.hand = []
         self.score = 0
         self.bank = 0
+        self.combination = ''
 
     def add_card_to_hand(self, card):
         self.hand.append(card)

@@ -60,32 +60,32 @@ class Dealer:
         sorted_count_map = sorted(count_map.items(), key=lambda item: item[1], reverse=True)
 
         if (self.is_flush(hand) and sum(score_list) == 60):
-            print('Royal flush')
-            return 60 * 100
+            combination = 'Royal flush'
+            return 60 * 100, combination
         elif (self.is_flush(hand) and self.is_straight(hand)):
-            print('Straight flush')
-            return sum(score_list) * 90
+            combination = 'Straight flush'
+            return sum(score_list) * 90, combination
         elif (sorted_count_map[0][1] == 4):
             print(f'Four of a kind! {self.find_key_by_val(sorted_count_map[0][0])}')
             return sum(score_list) * 80
         elif (sorted_count_map[0][1] == 3 and sorted_count_map[1][1] == 2):
-            print(f'Full house {self.find_key_by_val(sorted_count_map[0][0])} and {self.find_key_by_val(sorted_count_map[1][0])}')
-            return sum(score_list) * 70
+            combination = f'Full house {self.find_key_by_val(sorted_count_map[0][0])} and {self.find_key_by_val(sorted_count_map[1][0])}'
+            return sum(score_list) * 70, combination
         elif (self.is_flush(hand)):
-            print(f'Flush {sorted_hand[0]}')
-            return sum(score_list) * 60
+            combination = f'Flush {sorted_hand[0]}'
+            return sum(score_list) * 60, combination
         elif (self.is_straight(hand)):
-            print(f'Straight {sorted_hand[0]}')
-            return sum(score_list) * 50
+            combination = f'Straight {sorted_hand[0]}'
+            return sum(score_list) * 50, combination
         elif (sorted_count_map[0][1]  == 3):
-            print(f'Set {self.find_key_by_val(sorted_count_map[0][0])}')
-            return sum(score_list) * 40
+            combination = f'Set {self.find_key_by_val(sorted_count_map[0][0])}'
+            return sum(score_list) * 40, combination
         elif (sorted_count_map[0][1] == 2 and sorted_count_map[1][1] == 2):
-            print(f'Two pairs {self.find_key_by_val(sorted_count_map[0][0])} and {self.find_key_by_val(sorted_count_map[1][0])}')
-            return sum(score_list) * 30
+            combination = f'Two pairs {self.find_key_by_val(sorted_count_map[0][0])} and {self.find_key_by_val(sorted_count_map[1][0])}'
+            return sum(score_list) * 30, combination
         elif (sorted_count_map[0] == 1):
-            print(f'One pair {self.find_key_by_val(sorted_count_map[0])}')
-            return sum(score_list) * 20
+            combination = f'One pair {self.find_key_by_val(sorted_count_map[0])}'
+            return sum(score_list) * 20, combination
         else:
-            print(f'High card {sorted_hand[0]}')
-            return sum(score_list)
+            combination = f'High card {sorted_hand[0]}'
+            return sum(score_list), combination
