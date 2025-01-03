@@ -1,8 +1,8 @@
 class Dealer:
-    ALL_CARDS = ['2♥', '3♥', '4♥', '5♥', '6♥', '7♥', '8♥', '9♥', '10♥', 'J♥', 'Q♥', 'K♥', 'A♥', '2♦', '3♦', '4♦', '5♦',
-                 '6♦',
-                 '7♦', '8♦', '9♦', '10♦', 'J♦', 'Q♦', 'K♦', 'A♦', '2♠', '3♠', '4♠', '5♠', '6♠', '7♠', '8♠', '9♠', '10♠',
-                 'J♠', 'Q♠', 'K♠', 'A♠', '2♣', '3♣', '4♣', '5♣', '6♣', '7♣', '8♣', '9♣', '10♣', 'J♣', 'Q♣', 'K♣', 'A♣']
+    ALL_CARDS = ['2♥', '3♥', '4♥', '5♥', '6♥', '7♥', '8♥', '9♥', '10♥', 'J♥', 'Q♥', 'K♥', 'A♥',
+                 '2♦', '3♦', '4♦', '5♦', '6♦', '7♦', '8♦', '9♦', '10♦', 'J♦', 'Q♦', 'K♦', 'A♦',
+                 '2♠', '3♠', '4♠', '5♠', '6♠', '7♠', '8♠', '9♠', '10♠', 'J♠', 'Q♠', 'K♠', 'A♠',
+                 '2♣', '3♣', '4♣', '5♣', '6♣', '7♣', '8♣', '9♣', '10♣', 'J♣', 'Q♣', 'K♣', 'A♣']
     SUITS = ['♥', '♦', '♠', '♣']
     RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
     RANK_SCORE = {'2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9,
@@ -28,9 +28,9 @@ class Dealer:
         # Check if all suits are the same
         return len(set(suits)) == 1
 
-    def is_straight_with_ace(self, hand):
+    def is_straight(self, hand):
         ranks = [card[0:-1] for card in hand]
-        rank_values = sorted(RANK_SCORE[rank] for rank in ranks)
+        rank_values = sorted(Dealer.RANK_SCORE[rank] for rank in ranks)
 
         # Check for regular straight
         if all(rank_values[i] + 1 == rank_values[i + 1] for i in range(len(rank_values) - 1)):
@@ -46,6 +46,9 @@ class Dealer:
         print(f'Hand {hand} converted to {score_hand}')
         return score_hand
 
+    def find_key_by_val(self, val):
+        return next((k for k, v in Dealer.RANK_SCORE.items() if v == val), None)
+
     def calc_pairs(self, hand):
         count_dict = {element: hand.count(element) for element in set(hand)}
         return count_dict;
@@ -54,41 +57,35 @@ class Dealer:
         sorted_hand = sorted(hand, key=lambda card: Dealer.RANK_SCORE[card[0:-1]], reverse=True)
         score_list = self.convert_to_score(sorted_hand)
         count_map = self.calc_pairs(score_list);
-        # Pair
-        four = 0
-        three = 0
-        pair = 0
-        for val in count_map.values():
-            if val == 4:
-                four += 1
-            elif val == 3:
-                three += 1
-            elif val == 2:
-                pair += 1
-        if (four == 1):
-            print('Four of a kind!')
-            return sum(score_list) * 6
-        if (three == 1 and pair == 0):
-            print('Full house')
-            return sum(score_list) * 5
-        elif (three == 1):
-            print('Set')
-            return sum(score_list) * 4
-        elif (pair == 2):
-            print('Two pairs')
-            return sum(score_list) * 3
-        elif (pair == 1):
-            print('One pair')
-            return sum(score_list) * 2
+        sorted_count_map = sorted(count_map.items(), key=lambda item: item[1], reverse=True)
+
+        if (self.is_flush(hand) and sum(score_list) == 60):
+            print('Royal flush')
+            return 60 * 100
+        elif (self.is_flush(hand) and self.is_straight(hand)):
+            print('Straight flush')
+            return sum(score_list) * 90
+        elif (sorted_count_map[0][1] == 4):
+            print(f'Four of a kind! {self.find_key_by_val(sorted_count_map[0][0])}')
+            return sum(score_list) * 80
+        elif (sorted_count_map[0][1] == 3 and sorted_count_map[1][1] == 2):
+            print(f'Full house {self.find_key_by_val(sorted_count_map[0][0])} and {self.find_key_by_val(sorted_count_map[1][0])}')
+            return sum(score_list) * 70
+        elif (self.is_flush(hand)):
+            print(f'Flush {sorted_hand[0]}')
+            return sum(score_list) * 60
+        elif (self.is_straight(hand)):
+            print(f'Straight {sorted_hand[0]}')
+            return sum(score_list) * 50
+        elif (sorted_count_map[0][1]  == 3):
+            print(f'Set {self.find_key_by_val(sorted_count_map[0][0])}')
+            return sum(score_list) * 40
+        elif (sorted_count_map[0][1] == 2 and sorted_count_map[1][1] == 2):
+            print(f'Two pairs {self.find_key_by_val(sorted_count_map[0][0])} and {self.find_key_by_val(sorted_count_map[1][0])}')
+            return sum(score_list) * 30
+        elif (sorted_count_map[0] == 1):
+            print(f'One pair {self.find_key_by_val(sorted_count_map[0])}')
+            return sum(score_list) * 20
         else:
             print(f'High card {sorted_hand[0]}')
             return sum(score_list)
-
-    # Combination
-    # COMBINATION = ['RF', 'FH', 'cherry', 'date']
-    # Four of a Kind: 4 cards of one rank, 1 of another.
-    # Full House: 3 cards of one rank, 2 of another.
-    # Three of a Kind: 3 cards of one rank, 2 singletons.
-    # Two Pair: 2 cards of one rank, 2 of another, 1 singleton.
-    # One Pair: 2 cards of one rank, 3 singletons.
-    # High Card: No pairs, no special hand.
