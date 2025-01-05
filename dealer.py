@@ -21,6 +21,7 @@ class Dealer:
 
     def shuffle_deck(self):
         import random
+        self.deck = Dealer.ALL_CARDS.copy()
         random.shuffle(self.deck)
         return self.deck
 
@@ -90,6 +91,8 @@ class Dealer:
         sorted_count_map = sorted(count_map.items(), key=lambda x: (-x[1], -x[0]))
         top_card = sorted_count_map[0][0]
         top_frq = sorted_count_map[0][1]
+        next_pair_key = sorted_count_map[1][0]
+        next_pair = sorted_count_map[1][1]
 
         if (set(Dealer.ROYAL_HEARTS).issubset(hand) or
             set(Dealer.ROYAL_CLUBS).issubset(hand) or
@@ -98,11 +101,11 @@ class Dealer:
             combination = 'Royal flush!!!'
             return 60 * 100, combination
         elif (top_frq == 4):
-            print(f'Four of a kind! {self.find_key_by_val(top_card)}')
-            return sum(score_list) * 80
-        elif (top_frq == 3 and sorted_count_map[1][1] == 2):
-            combination = f'Full house {self.find_key_by_val(top_card)} and {self.find_key_by_val(sorted_count_map[1][0])}'
-            return sum(score_list) * 70, combination
+            combination = f'Four of a kind! {self.find_key_by_val(top_card)}'
+            return top_card * 80, combination
+        elif (top_frq == 3 and next_pair == 2):
+            combination = f'Full house {self.find_key_by_val(top_card)} and {self.find_key_by_val(next_pair_key)}'
+            return top_card * 70, combination
         elif (self.is_flush(hand)):
             if self.is_straight(self.combo):
                 combination = f'Straight flush {self.combo}'
@@ -116,8 +119,8 @@ class Dealer:
         elif (top_frq == 3):
             combination = f'Set {self.find_key_by_val(top_card)}'
             return top_card * 40, combination
-        elif (top_frq == 2 and sorted_count_map[1][1] == 2):
-            combination = f'Two pairs {self.find_key_by_val(top_card)} and {self.find_key_by_val(sorted_count_map[1][0])}'
+        elif (top_frq == 2 and next_pair == 2):
+            combination = f'Two pairs {self.find_key_by_val(top_card)} and {self.find_key_by_val(next_pair_key)}'
             return top_card * 30, combination
         elif (top_frq == 2):
             combination = f'One pair {self.find_key_by_val(top_card)}'
