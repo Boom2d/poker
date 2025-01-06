@@ -1,3 +1,5 @@
+from enum import Enum
+
 class Player:
     def __init__(self, name):
         self.id = ''
@@ -6,7 +8,7 @@ class Player:
         self.score = 0
         self.bank = 0
         self.combination = ''
-        self.action = ''
+        self.action = Action.NONE
 
     def add_card_to_hand(self, card):
         self.hand.append(card)
@@ -26,8 +28,21 @@ class Player:
     def set_bank(self, bank):
         self.bank = bank
 
+    def set_action(self, action):
+        self.action = action
+
+    def set_id(self, id):
+        self.id = id
+
     def __str__(self):
         return (f"Player: {self.name}\n"
                 f"Hand: {self.hand}\n"
                 f"Score: {self.score}\n"
                 f"Bank: ${self.bank}")
+
+class Action(Enum):
+    NONE = 'None'
+    CHECK = 'Check'
+    CALL = 'Call'
+    RAISE = 'Raise'
+    FOLD = 'Fold'
