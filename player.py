@@ -1,10 +1,12 @@
 class Player:
     def __init__(self, name):
+        self.id = ''
         self.name = name
         self.hand = []
         self.score = 0
         self.bank = 0
         self.combination = ''
+        self.action = ''
 
     def add_card_to_hand(self, card):
         self.hand.append(card)
