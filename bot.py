@@ -18,6 +18,7 @@ player_list = []
 table_cards = []
 msg_map = {}
 main_msg = types.Message
+is_game_in_progress = False
 
 start_kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Join", callback_data="join")]])
 
@@ -52,29 +53,50 @@ async def deal_table(message: types.Message):
     except Exception as e:
         await message.edit_text(f"Something goes wrong: {e}")
 
-
 async def deal_hand(message: types.Message):
     try:
-        global player_list
-        user = message.from_user.first_name
+        player = next(player for player in player_list if player.name == message.from_user.first_name)
+        if not player.hand:
+            player.set_hand(dealer.deal_cards(2))
 
-        if any(player.name == user for player in player_list):
-            await message.answer(f"{user} already in game")
-        else:
-            player = Player(user)
-            player.id = message.from_user.id
-            card = dealer.deal_cards(2)
-            player.set_hand(card)
-            player_list.append(player)
+        if isinstance(message, CallbackQuery):
+            message = message.message
+        msg = await message.answer(f"{player.name}'s hand: ||{player.hand}||", parse_mode='MarkdownV2', reply_markup=round_kb)
+        msg_map[msg.message_id] = player.id
 
-            if isinstance(message, CallbackQuery):
-                message = message.message
-            await message.edit_text(gen_main_view_text(), parse_mode='MarkdownV2', reply_markup=main_kb)
-
-            msg = await message.answer(f"{user}'s hand: ||{card}||", parse_mode='MarkdownV2', reply_markup=round_kb)
-            msg_map[msg.message_id] = player.id
     except Exception as e:
         await message.answer(f"Something goes wrong: {e}")
+
+async def add_to_player_list(user: str, message: types.Message):
+    """
+    Adds a player to the player list if they are not already in the game.
+
+    Args:
+        user (str): The name of the user.
+        message (types.Message): The message object from the user.
+
+    """
+    global player_list
+
+    if len(player_list) > 8:
+        await message.answer("Table is full")
+        return
+    if any(player.name == user for player in player_list):
+        await message.answer(f"{user} already in game")
+        return
+
+    player = Player(user)
+    player.id = message.from_user.id
+    player_list.append(player)
+
+@dp.message(Command('hand'))
+async def show_hand(message: types.Message):
+    name = message.from_user.first_name
+    player = next((player for player in player_list if player.id == message.from_user.id and player.name == name), None)
+    if player is None:
+        await message.answer(f"{name} is not found")
+    else:
+        await deal_hand(message)
 
 
 @dp.message(Command('players'))
@@ -98,6 +120,7 @@ async def calc_cards(message: types.Message):
 
         if player_list and table_cards:
             for player in player_list:
+                print(f"{player.name}'s action: {player.action}")
                 if player.action != Action.FOLD:
                     print(f"{player.name}'s full hand:", player.hand + table_cards)
                     player.score, player.combination = dealer.calc_score(player.hand + table_cards);
@@ -109,6 +132,7 @@ async def calc_cards(message: types.Message):
             dealer.shuffle_deck()
 
             win_list = [player for player in player_list if player.score == max_score]
+            for player in player_list: player.score = 0
             output = ''
             for player in win_list:
                 output = output + (f"{player.name} wins! combination: {player.combination} score: {player.score}\n")
@@ -139,18 +163,26 @@ async def delete_bot_messages(message: types.Message):
 
 @dp.message(Command('game'))
 async def game(message: types.Message):
-    print(f"Game message {message}")
+    global is_game_in_progress
     global main_msg
-    player_list = []
-    main_msg = await message.answer(f"Table: [][][]", reply_markup=start_kb)
+
+    if is_game_in_progress:
+        main_msg = await message.answer(gen_main_view_text(), reply_markup=start_kb)
+    else:
+        player_list = []
+        is_game_in_progress = True
+        main_msg = await message.answer(f"Table: [][][]", reply_markup=start_kb)
 
 
 @dp.callback_query(lambda callback: callback.data == "join")
 async def button_join(callback: CallbackQuery):
+    print(f'Callback: {callback}')
     if table_cards:
         await callback.answer('The game is in progress. Try when table is empty')
     else:
+        await add_to_player_list(user=callback.from_user.first_name, message=callback)
         await deal_hand(callback)
+        await main_msg.edit_text(f"Table: [][][] {gen_main_view_text()}", parse_mode='MarkdownV2', reply_markup=main_kb)
         await callback.answer('Joined the game')
 
 
@@ -212,12 +244,13 @@ def gen_main_view_text():
 
 async def process_round():
     if is_round_done():
-        for player in player_list:
-            player.set_action(Action.NONE)
+        print(f'Round is done: {player_list.__str__()}')
         if len(table_cards) == 5:
             await calc_cards(main_msg)
         else:
             await deal_table(main_msg)
+        for player in player_list:
+            player.set_action(Action.NONE)
     else:
         await main_msg.edit_text(gen_main_view_text(), parse_mode='MarkdownV2', reply_markup=main_kb)
 
