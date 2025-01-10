@@ -7,6 +7,7 @@ class Player:
         self.hand = []
         self.score = 0
         self.bank = 0
+        self.bid = 0
         self.combination = ''
         self.action = Action.NONE
 

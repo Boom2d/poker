@@ -128,3 +128,9 @@ class Dealer:
         else:
             combination = f'High card {sorted_hand[0]}'
             return score_list[0], combination
+
+    def get_to_bank(bank, value):
+        if (bank < value):
+            return 0, bank
+        else:
+            return bank - value, value
