@@ -6,8 +6,9 @@ class Player:
         self.name = name
         self.hand = []
         self.score = 0
-        self.bank = 0
+        self.bank = 1000
         self.bid = 0
+        self.pos = 0
         self.combination = ''
         self.action = Action.NONE
 
@@ -38,6 +39,8 @@ class Player:
     def __str__(self):
         return (f"Player: {self.name}\n"
                 f"Hand: {self.hand}\n"
+                f"Action: {self.action}\n"
+                f"Bid: {self.bid}\n"
                 f"Score: {self.score}\n"
                 f"Bank: ${self.bank}")
 
@@ -47,3 +50,4 @@ class Action(Enum):
     CALL = 'Call'
     RAISE = 'Raise'
     FOLD = 'Fold'
+    ALL_IN = 'All_In'
